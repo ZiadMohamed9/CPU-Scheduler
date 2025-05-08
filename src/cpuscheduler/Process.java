@@ -2,9 +2,10 @@ package cpuscheduler;
 
 public class Process {
     private final int processId;
-    private final int burstTime;
     private final int priority;
     private final int arrivalTime;
+    private final int burstTime;
+    private int startTime;
     private String state;
 
     // Calculated values
@@ -38,6 +39,10 @@ public class Process {
         return arrivalTime;
     }
 
+    public int getStartTime() {
+        return startTime;
+    }
+
     public String getState() {
         return state;
     }
@@ -59,6 +64,10 @@ public class Process {
     }
 
     // Setters
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
+    }
+
     public void setState(String state) {
         this.state = state;
     }
@@ -83,4 +92,6 @@ public class Process {
     public String toString() {
         return "P" + processId + " (BT:" + burstTime + ", Prio:" + priority + ")";
     }
+
+
 }

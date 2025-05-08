@@ -1,8 +1,6 @@
 package cpuscheduler;
 
-import cpuscheduler.algorithms.FCFSSchedulingAlgorithm;
-import cpuscheduler.algorithms.SJFSchedulingAlgorithm;
-import cpuscheduler.algorithms.SchedulingAlgorithm;
+import cpuscheduler.algorithms.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,6 +16,7 @@ public class CPUSchedulerGUI extends JFrame {
     private final JTextField tfProcessId;
     private final JTextField tfBurstTime;
     private final JTextField tfPriority;
+    private final JTextField tfQuantumTime;
 
     // Algorithm selection
     private final JComboBox<String> algorithmComboBox;
@@ -44,27 +43,36 @@ public class CPUSchedulerGUI extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
+        JLabel lblQuantumTime = new JLabel("Quantum Time:");
+        lblQuantumTime.setVisible(false); // Initially hidden
+        inputPanel.add(lblQuantumTime, gbc);
+        tfQuantumTime = new JTextField(5);
+        tfQuantumTime.setVisible(false); // Initially hidden
+        gbc.gridx = 1; gbc.gridy = 0;
+        inputPanel.add(tfQuantumTime, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
         inputPanel.add(new JLabel("Process ID:"), gbc);
         tfProcessId = new JTextField(5);
         tfProcessId.setText(String.valueOf(nextProcessId));
         tfProcessId.setEditable(false);
-        gbc.gridx = 1; gbc.gridy = 0;
+        gbc.gridx = 1; gbc.gridy = 1;
         inputPanel.add(tfProcessId, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         inputPanel.add(new JLabel("CPU Time (Burst):"), gbc);
         tfBurstTime = new JTextField(5);
-        gbc.gridx = 1; gbc.gridy = 1;
+        gbc.gridx = 1; gbc.gridy = 2;
         inputPanel.add(tfBurstTime, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 3;
         inputPanel.add(new JLabel("Priority:"), gbc);
         tfPriority = new JTextField(5);
-        gbc.gridx = 1; gbc.gridy = 2;
+        gbc.gridx = 1; gbc.gridy = 3;
         inputPanel.add(tfPriority, gbc);
 
         // Create a panel for buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 5));
         JButton btnAddProcess = new JButton("Add Process");
         JButton btnRunScheduler = new JButton("Run Selected Algorithm");
         JButton btnClearProcesses = new JButton("Clear Processes");
@@ -83,7 +91,7 @@ public class CPUSchedulerGUI extends JFrame {
         buttonPanel.add(btnRunScheduler);
         buttonPanel.add(btnClearProcesses);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 4;
         gbc.gridwidth = 2;
         inputPanel.add(buttonPanel, gbc);
 
@@ -109,7 +117,7 @@ public class CPUSchedulerGUI extends JFrame {
         JPanel resultsPanel = new JPanel(new BorderLayout(10,10));
         resultsPanel.setBorder(BorderFactory.createTitledBorder("Scheduling Results"));
 
-        String[] resultsColumnNames = {"P.ID", "Burst", "Priority", "Arrival", "Completion", "Response", "Waiting", "Turnaround", "State"};
+        String[] resultsColumnNames = {"P.ID", "Priority", "Burst", "Arrival", "Start", "Completion", "Response", "Waiting", "Turnaround", "State"};
         resultsTableModel = new DefaultTableModel(resultsColumnNames, 0);
         JTable resultsTable = new JTable(resultsTableModel);
         JScrollPane resultsTableScrollPane = new JScrollPane(resultsTable);
@@ -153,6 +161,33 @@ public class CPUSchedulerGUI extends JFrame {
             tfProcessId.setText(String.valueOf(nextProcessId)); // Update the process ID field
         });
 
+        // Show or hide quantum time input based on the selected algorithm
+        algorithmComboBox.addActionListener(e -> {
+            String selectedAlgo = (String) algorithmComboBox.getSelectedItem();
+            boolean isRoundRobin = "Round Robin".equals(selectedAlgo);
+            lblQuantumTime.setVisible(isRoundRobin);
+            tfQuantumTime.setVisible(isRoundRobin);
+        });
+
+        // Update quantum time in the Round Robin algorithm when running
+        btnRunScheduler.addActionListener(_ -> {
+            if ("Round Robin".equals(algorithmComboBox.getSelectedItem())) {
+                try {
+                    int quantumTime = Integer.parseInt(tfQuantumTime.getText().trim());
+                    if (quantumTime <= 0) {
+                        JOptionPane.showMessageDialog(this, "Quantum Time must be positive.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    RoundRobinSchedulingAlgorithm rrAlgorithm = (RoundRobinSchedulingAlgorithm) availableAlgorithms.get("Round Robin");
+                    rrAlgorithm.setQuantumTime(quantumTime);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid number for Quantum Time.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+            runSelectedAlgorithm();
+        });
+
         // Frame properties
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -169,6 +204,13 @@ public class CPUSchedulerGUI extends JFrame {
         SchedulingAlgorithm sjf = new SJFSchedulingAlgorithm();
         availableAlgorithms.put(sjf.getName(), sjf);
 
+        // Add Priority non-preemptive
+        SchedulingAlgorithm priority = new PrioritySchedulingAlgorithm();
+        availableAlgorithms.put(priority.getName(), priority);
+
+        // Add Round Robin
+        SchedulingAlgorithm roundRobin = new RoundRobinSchedulingAlgorithm();
+        availableAlgorithms.put(roundRobin.getName(), roundRobin);
     }
 
     private void addProcess() {
@@ -235,9 +277,10 @@ public class CPUSchedulerGUI extends JFrame {
             for (Process p : result.completedProcesses()) {
                 resultsTableModel.addRow(new Object[]{
                         p.getProcessId(),
-                        p.getBurstTime(),
                         p.getPriority(),
+                        p.getBurstTime(),
                         p.getArrivalTime(),
+                        p.getStartTime(),
                         p.getCompletionTime(),
                         p.getResponseTime(),
                         p.getWaitingTime(),
