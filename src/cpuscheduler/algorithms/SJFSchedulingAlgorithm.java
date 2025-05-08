@@ -3,15 +3,12 @@ package cpuscheduler.algorithms;
 import cpuscheduler.Process;
 import cpuscheduler.SchedulerResult;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
-public class FCFSSchedulingAlgorithm  implements SchedulingAlgorithm {
+public class SJFSchedulingAlgorithm implements SchedulingAlgorithm {
     @Override
     public String getName() {
-        return "First Come First Serve (FCFS)";
+        return "Shortest Job First (SJF)";
     }
 
     @Override
@@ -23,7 +20,7 @@ public class FCFSSchedulingAlgorithm  implements SchedulingAlgorithm {
         StringBuilder ganttChartBuilder = new StringBuilder("|");
         StringBuilder ganttTimingBuilder = new StringBuilder("0");
 
-        System.out.println("\n--- FCFS Scheduling Logic ---");
+        System.out.println("\n--- SJF Scheduling Logic ---");
         System.out.println("Process | Burst | Arrival | Completion | Response | Turnaround | Waiting");
 
 
@@ -69,8 +66,8 @@ public class FCFSSchedulingAlgorithm  implements SchedulingAlgorithm {
         double avgWaitingTime = completedProcesses.isEmpty() ? 0 : totalWaitingTime / completedProcesses.size();
         double avgTurnaroundTime = completedProcesses.isEmpty() ? 0 : totalTurnaroundTime / completedProcesses.size();
 
-        System.out.printf("\nAverage Waiting Time (FCFS Logic): %.2f\n", avgWaitingTime);
-        System.out.printf("Average Turnaround Time (FCFS Logic): %.2f\n", avgTurnaroundTime);
+        System.out.printf("\nAverage Waiting Time (SJF Logic): %.2f\n", avgWaitingTime);
+        System.out.printf("Average Turnaround Time (SJF Logic): %.2f\n", avgTurnaroundTime);
 
 
         String ganttChartOutput = ganttChartBuilder + "\n" + ganttTimingBuilder;
@@ -86,6 +83,9 @@ public class FCFSSchedulingAlgorithm  implements SchedulingAlgorithm {
             Process processCopy = new Process(p.getProcessId(), p.getBurstTime(), p.getPriority());
             localProcessList.add(processCopy);
         }
+
+        // Sort the processes by burst time
+        localProcessList.sort(Comparator.comparingInt(Process::getBurstTime));
 
         return new LinkedList<>(localProcessList);
     }

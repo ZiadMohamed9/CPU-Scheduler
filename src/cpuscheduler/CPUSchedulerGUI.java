@@ -1,6 +1,7 @@
 package cpuscheduler;
 
 import cpuscheduler.algorithms.FCFSSchedulingAlgorithm;
+import cpuscheduler.algorithms.SJFSchedulingAlgorithm;
 import cpuscheduler.algorithms.SchedulingAlgorithm;
 
 import javax.swing.*;
@@ -63,15 +64,24 @@ public class CPUSchedulerGUI extends JFrame {
         inputPanel.add(tfPriority, gbc);
 
         // Create a panel for buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 0, 5));
         JButton btnAddProcess = new JButton("Add Process");
         JButton btnRunScheduler = new JButton("Run Selected Algorithm");
+        JButton btnClearProcesses = new JButton("Clear Processes");
+
         btnRunScheduler.setBackground(new Color(100, 180, 100));
         btnRunScheduler.setForeground(Color.WHITE);
         btnRunScheduler.setOpaque(true);
         btnRunScheduler.setBorderPainted(false);
+
+        btnClearProcesses.setBackground(new Color(255, 100, 100));
+        btnClearProcesses.setForeground(Color.WHITE);
+        btnClearProcesses.setOpaque(true);
+        btnClearProcesses.setBorderPainted(false);
+
         buttonPanel.add(btnAddProcess);
         buttonPanel.add(btnRunScheduler);
+        buttonPanel.add(btnClearProcesses);
 
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -135,6 +145,14 @@ public class CPUSchedulerGUI extends JFrame {
 
         btnRunScheduler.addActionListener(_ -> runSelectedAlgorithm());
 
+        // Action listener for the "Clear Processes" button
+        btnClearProcesses.addActionListener(_ -> {
+            processList.clear(); // Clear the process list
+            inputTableModel.setRowCount(0); // Clear the table model
+            nextProcessId = 1; // Reset the process ID counter
+            tfProcessId.setText(String.valueOf(nextProcessId)); // Update the process ID field
+        });
+
         // Frame properties
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -147,11 +165,10 @@ public class CPUSchedulerGUI extends JFrame {
         SchedulingAlgorithm fcfs = new FCFSSchedulingAlgorithm();
         availableAlgorithms.put(fcfs.getName(), fcfs);
 
-        // To add more algorithms later:
-        // SchedulingAlgorithm sjf = new ShortestJobFirstAlgorithm(); // Example
-        // availableAlgorithms.put(sjf.getName(), sjf);
-        // ... and so on
-        // Update JComboBox if algorithms are loaded after GUI initialization (not the case here)
+        // Add SJF
+        SchedulingAlgorithm sjf = new SJFSchedulingAlgorithm();
+        availableAlgorithms.put(sjf.getName(), sjf);
+
     }
 
     private void addProcess() {
