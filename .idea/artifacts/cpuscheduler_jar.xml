@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="cpuscheduler:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/cpuscheduler_jar</output-path>
+    <root id="archive" name="cpuscheduler.jar">
+      <element id="module-output" name="cpuscheduler" />
+    </root>
+  </artifact>
+</component>
