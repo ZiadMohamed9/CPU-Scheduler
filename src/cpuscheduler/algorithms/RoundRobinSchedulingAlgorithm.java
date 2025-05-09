@@ -5,7 +5,7 @@ import cpuscheduler.SchedulerResult;
 
 import java.util.*;
 
-public class RoundRobinSchedulingAlgorithm implements SchedulingAlgorithm {
+public class RoundRobinSchedulingAlgorithm extends SchedulingAlgorithm {
     private static int quantumTime;
 
     public int getQuantumTime() {
@@ -87,41 +87,10 @@ public class RoundRobinSchedulingAlgorithm implements SchedulingAlgorithm {
                     currentProcess.getState());
         }
 
-        double totalWaitingTime = 0;
-        double totalTurnaroundTime = 0;
-        double totalResponseTime = 0;
-        for (Process p : completedProcesses) {
-            totalWaitingTime += p.getWaitingTime();
-            totalTurnaroundTime += p.getTurnaroundTime();
-            totalResponseTime += p.getResponseTime();
-        }
-
-        double avgWaitingTime = completedProcesses.isEmpty() ? 0 : totalWaitingTime / completedProcesses.size();
-        double avgTurnaroundTime = completedProcesses.isEmpty() ? 0 : totalTurnaroundTime / completedProcesses.size();
-        double avgResponseTime = completedProcesses.isEmpty() ? 0 : totalResponseTime / completedProcesses.size();
-
-        System.out.printf("\nAverage Waiting Time (Round Robin Logic): %.2f\n", avgWaitingTime);
-        System.out.printf("Average Turnaround Time (Round Robin Logic): %.2f\n", avgTurnaroundTime);
-        System.out.printf("Average Response Time (Round Robin Logic): %.2f\n", avgResponseTime);
-
-
-        String ganttChartOutput = ganttChartBuilder + "\n" + ganttTimingBuilder;
-        ganttChartOutput += String.format("\n\nAverage Waiting Time: %.2f", avgWaitingTime);
-        ganttChartOutput += String.format("\nAverage Turnaround Time: %.2f", avgTurnaroundTime);
-        ganttChartOutput += String.format("\nAverage Response Time: %.2f", avgResponseTime);
+        String ganttChartOutput = generateStatistics(completedProcesses, ganttChartBuilder, ganttTimingBuilder);
 
         completedProcesses.sort(Comparator.comparingInt(Process::getProcessId));
 
-        return new SchedulerResult(completedProcesses, ganttChartOutput, avgWaitingTime, avgTurnaroundTime);
-    }
-
-    private Queue<Process> getProcesses(List<Process> processes) {
-        List<Process> localProcessList = new ArrayList<>();
-        for (Process p : processes) {
-            Process processCopy = new Process(p.getProcessId(), p.getBurstTime(), p.getPriority());
-            localProcessList.add(processCopy);
-        }
-
-        return new LinkedList<>(localProcessList);
+        return new SchedulerResult(completedProcesses, ganttChartOutput);
     }
 }

@@ -162,7 +162,7 @@ public class CPUSchedulerGUI extends JFrame {
         });
 
         // Show or hide quantum time input based on the selected algorithm
-        algorithmComboBox.addActionListener(e -> {
+        algorithmComboBox.addActionListener(_ -> {
             String selectedAlgo = (String) algorithmComboBox.getSelectedItem();
             boolean isRoundRobin = "Round Robin".equals(selectedAlgo);
             lblQuantumTime.setVisible(isRoundRobin);
@@ -251,10 +251,12 @@ public class CPUSchedulerGUI extends JFrame {
         }
 
         String selectedAlgoName = (String) algorithmComboBox.getSelectedItem();
+
         if (selectedAlgoName == null) {
             JOptionPane.showMessageDialog(this, "Please select an algorithm.", "Algorithm Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+
         SchedulingAlgorithm algorithm = availableAlgorithms.get(selectedAlgoName);
 
         if (algorithm == null) { // Should not happen if ComboBox is populated correctly
